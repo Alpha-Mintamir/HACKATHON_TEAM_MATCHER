@@ -22,37 +22,54 @@ user_states = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /start command"""
-    user_id = update.effective_user.id
-    username = update.effective_user.username
-    
-    # Check if user is already registered
-    existing_user = operations.get_user_by_telegram_id(user_id)
-    
-    if existing_user:
-        # Check if user is already in a team or waiting for confirmation
-        is_in_active_team = not existing_user.is_waiting
+    try:
+        logger.info(f"Start command received from user {update.effective_user.id}")
         
-        if is_in_active_team:
-            # User is already in a team or waiting for confirmation, don't allow changes
-            await update.message.reply_text(
-                "You're already part of a team or waiting for team confirmation. "
-                "You cannot change your registration details at this time."
-            )
+        user_id = update.effective_user.id
+        username = update.effective_user.username
+        
+        # Check if user is already registered
+        logger.info(f"Checking if user {user_id} is registered")
+        existing_user = operations.get_user_by_telegram_id(user_id)
+        logger.info(f"User exists: {existing_user is not None}")
+        
+        if existing_user:
+            # Check if user is already in a team or waiting for confirmation
+            is_in_active_team = not existing_user.is_waiting
+            logger.info(f"User is in active team: {is_in_active_team}")
+            
+            if is_in_active_team:
+                # User is already in a team or waiting for confirmation, don't allow changes
+                await update.message.reply_text(
+                    "You're already part of a team or waiting for team confirmation. "
+                    "You cannot change your registration details at this time."
+                )
+            else:
+                # User is registered but not in a team, allow editing
+                await update.message.reply_text(
+                    messages.get_already_registered_message(existing_user.skill, existing_user.experience),
+                    reply_markup=keyboards.get_edit_registration_keyboard()
+                )
         else:
-            # User is registered but not in a team, allow editing
+            # New user, start registration process
+            logger.info(f"Starting registration for new user {user_id}")
+            user_states[user_id] = {"step": "skill_selection"}
+            
+            # Send welcome message with skill selection keyboard
             await update.message.reply_text(
-                messages.get_already_registered_message(existing_user.skill, existing_user.experience),
-                reply_markup=keyboards.get_edit_registration_keyboard()
+                messages.get_welcome_message(),
+                reply_markup=keyboards.get_skill_keyboard()
             )
-    else:
-        # New user, start registration process
-        user_states[user_id] = {"step": "skill_selection"}
-        
-        # Send welcome message with skill selection keyboard
-        await update.message.reply_text(
-            messages.get_welcome_message(),
-            reply_markup=keyboards.get_skill_keyboard()
-        )
+            logger.info(f"Welcome message sent to user {user_id}")
+    except Exception as e:
+        logger.error(f"Error in start command handler: {e}", exc_info=True)
+        # Try to send a simple message to the user
+        try:
+            await update.message.reply_text(
+                "Sorry, something went wrong. Please try again later or contact the administrator."
+            )
+        except Exception as inner_e:
+            logger.error(f"Failed to send error message: {inner_e}")
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle button callbacks"""

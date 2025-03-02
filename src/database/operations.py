@@ -55,8 +55,15 @@ def get_waiting_users():
 
 def get_user_by_telegram_id(telegram_id):
     """Get a user by their Telegram ID"""
-    db = get_db()
-    return db.query(User).filter(User.telegram_id == telegram_id).first()
+    try:
+        db = get_db()
+        user = db.query(User).filter(User.telegram_id == telegram_id).first()
+        db.close()  # Close the session
+        return user
+    except Exception as e:
+        import logging
+        logging.error(f"Error getting user by Telegram ID: {e}", exc_info=True)
+        return None
 
 def update_user_waiting_status(user_id, is_waiting):
     """Update a user's waiting status"""

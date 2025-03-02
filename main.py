@@ -74,12 +74,24 @@ def main():
     # Start the bot with webhook if on Railway (PORT is set)
     if 'PORT' in os.environ:
         # Use webhook when deployed
-        app_url = os.environ.get('APP_URL', f"https://{os.environ.get('RAILWAY_STATIC_URL')}.up.railway.app")
+        railway_url = os.environ.get('RAILWAY_STATIC_URL')
+        app_url = os.environ.get('APP_URL')
+        
+        if not app_url and railway_url:
+            app_url = f"https://{railway_url}.up.railway.app"
+        
+        if not app_url:
+            logger.error("No APP_URL or RAILWAY_STATIC_URL found in environment variables")
+            app_url = "https://your-app-name.up.railway.app"  # Fallback URL
+        
+        webhook_url = f"{app_url}/{config.TELEGRAM_BOT_TOKEN}"
+        logger.info(f"Setting webhook URL to: {webhook_url}")
+        
         application.run_webhook(
             listen="0.0.0.0",
             port=port,
             url_path=config.TELEGRAM_BOT_TOKEN,
-            webhook_url=f"{app_url}/{config.TELEGRAM_BOT_TOKEN}"
+            webhook_url=webhook_url
         )
     else:
         # Use polling for local development
