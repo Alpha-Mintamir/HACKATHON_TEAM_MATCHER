@@ -66,37 +66,10 @@ def main():
     logger.info(f"Scheduled team matching job to run every 2 hours, starting at {first_run}")
     
     # Start the Bot
-    logger.info("Starting bot...")
+    logger.info("Starting bot with long polling...")
     
-    # Get port from environment variable (for Railway)
-    port = int(os.environ.get('PORT', 8443))
-    
-    # Start the bot with webhook if on Railway (PORT is set)
-    if 'PORT' in os.environ:
-        # Use webhook when deployed
-        railway_url = os.environ.get('RAILWAY_STATIC_URL')
-        app_url = os.environ.get('APP_URL')
-        
-        if not app_url and railway_url:
-            app_url = f"https://{railway_url}.up.railway.app"
-        
-        if not app_url:
-            # Use the actual Railway app URL - fixed to remove duplicate domain
-            app_url = "https://hackathonteammatcher-production.up.railway.app"
-            logger.info(f"Using hardcoded app URL: {app_url}")
-        
-        webhook_url = f"{app_url}/{config.TELEGRAM_BOT_TOKEN}"
-        logger.info(f"Setting webhook URL to: {webhook_url}")
-        
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=port,
-            url_path=config.TELEGRAM_BOT_TOKEN,
-            webhook_url=webhook_url
-        )
-    else:
-        # Use polling for local development
-        application.run_polling()
+    # Always use polling instead of webhooks
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
