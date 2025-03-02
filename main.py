@@ -81,7 +81,7 @@ def main():
             app_url = f"https://{railway_url}.up.railway.app"
         
         if not app_url:
-            # Use the actual Railway app URL
+            # Use the actual Railway app URL - fixed to remove duplicate domain
             app_url = "https://hackathonteammatcher-production.up.railway.app"
             logger.info(f"Using hardcoded app URL: {app_url}")
         
