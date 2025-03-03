@@ -159,26 +159,24 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Create or update user in database
         operations.create_user(user_id, username, skill, experience)
         
-        # Send confirmation message with information about batch matching
+        # Send confirmation message
         if is_update:
             await query.edit_message_text(
                 f"✅ Registration updated!\n\n"
                 f"Your skill: {skill}\n"
                 f"Your experience: {experience}\n\n"
-                f"You've been added to the waiting list. Team matching happens every 2 hours. "
-                f"We'll notify you when you've been matched with a team!"
+                f"Looking for team members..."
             )
         else:
             await query.edit_message_text(
                 f"✅ Registration complete!\n\n"
                 f"Your skill: {skill}\n"
                 f"Your experience: {experience}\n\n"
-                f"You've been added to the waiting list. Team matching happens every 2 hours. "
-                f"We'll notify you when you've been matched with a team!"
+                f"Looking for team members..."
             )
         
-        # No longer trying to match teams immediately
-        # await try_match_teams(context)
+        # Try to match teams immediately
+        await try_match_teams(context)
     
     # Handle team confirmation
     elif data.startswith("confirm_"):

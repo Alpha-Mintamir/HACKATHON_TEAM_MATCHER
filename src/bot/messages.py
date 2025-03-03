@@ -22,8 +22,7 @@ def get_registration_complete_message(skill, experience):
         f"✅ Registration complete!\n\n"
         f"Your skill: {skill}\n"
         f"Your experience: {experience}\n\n"
-        f"You've been added to the waiting list. Team matching happens every 2 hours. "
-        f"We'll notify you when you've been matched with a team!"
+        f"Looking for team members..."
     )
 
 def get_team_match_message():
